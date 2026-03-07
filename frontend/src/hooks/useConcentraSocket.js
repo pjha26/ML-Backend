@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * Custom hook for WebSocket connection to ConcentraAI backend.
- * Handles connection, reconnection, and frame sending.
+ * In development: connects to localhost via Vite proxy.
+ * In production: connects directly to the backend URL set in VITE_BACKEND_URL.
  */
 export function useConcentraSocket() {
     const [isConnected, setIsConnected] = useState(false);
@@ -11,13 +12,27 @@ export function useConcentraSocket() {
     const clientIdRef = useRef(`client_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
     const reconnectTimerRef = useRef(null);
 
+    const getBackendUrl = useCallback(() => {
+        // In production, use the env variable pointing to Render backend
+        const backendUrl = import.meta.env.VITE_BACKEND_URL;
+        if (backendUrl) {
+            // Convert http(s) to ws(s)
+            const wsUrl = backendUrl.replace(/^http/, 'ws');
+            return `${wsUrl}/ws/${clientIdRef.current}`;
+        }
+        // In development, use the Vite proxy (same host)
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        return `${protocol}://${window.location.host}/ws/${clientIdRef.current}`;
+    }, []);
+
+    const getApiBaseUrl = useCallback(() => {
+        return import.meta.env.VITE_BACKEND_URL || '';
+    }, []);
+
     const connect = useCallback(() => {
         if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const host = window.location.host;
-        const wsUrl = `${protocol}://${host}/ws/${clientIdRef.current}`;
-
+        const wsUrl = getBackendUrl();
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -39,7 +54,6 @@ export function useConcentraSocket() {
         ws.onclose = () => {
             setIsConnected(false);
             console.log('[ConcentraAI] WebSocket disconnected');
-            // Auto reconnect after 2s
             reconnectTimerRef.current = setTimeout(connect, 2000);
         };
 
@@ -49,7 +63,7 @@ export function useConcentraSocket() {
         };
 
         wsRef.current = ws;
-    }, []);
+    }, [getBackendUrl]);
 
     const disconnect = useCallback(() => {
         clearTimeout(reconnectTimerRef.current);
@@ -68,12 +82,13 @@ export function useConcentraSocket() {
 
     const resetSession = useCallback(async () => {
         try {
-            await fetch(`/api/session/${clientIdRef.current}/reset`, { method: 'POST' });
+            const baseUrl = getApiBaseUrl();
+            await fetch(`${baseUrl}/api/session/${clientIdRef.current}/reset`, { method: 'POST' });
             setData(null);
         } catch (e) {
             console.error('[ConcentraAI] Reset error:', e);
         }
-    }, []);
+    }, [getApiBaseUrl]);
 
     useEffect(() => {
         return () => {

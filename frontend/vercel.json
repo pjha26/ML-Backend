@@ -1,0 +1,16 @@
+{
+    "rewrites": [
+        {
+            "source": "/ws/:path*",
+            "destination": "https://YOUR_RENDER_URL/ws/:path*"
+        },
+        {
+            "source": "/api/:path*",
+            "destination": "https://YOUR_RENDER_URL/api/:path*"
+        },
+        {
+            "source": "/health",
+            "destination": "https://YOUR_RENDER_URL/health"
+        }
+    ]
+}
