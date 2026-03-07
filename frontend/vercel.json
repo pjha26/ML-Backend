@@ -2,15 +2,15 @@
     "rewrites": [
         {
             "source": "/ws/:path*",
-            "destination": "https://https://concentra-ai-backend.onrender.com/ws/:path*"
+            "destination": "https://concentra-ai-backend.onrender.com/ws/:path*"
         },
         {
             "source": "/api/:path*",
-            "destination": "https://https://concentra-ai-backend.onrender.com/api/:path*"
+            "destination": "https://concentra-ai-backend.onrender.com/api/:path*"
         },
         {
             "source": "/health",
-            "destination": "https://https://concentra-ai-backend.onrender.com/health"
+            "destination": "https://concentra-ai-backend.onrender.com/health"
         }
     ]
 }
