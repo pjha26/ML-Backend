@@ -1,0 +1,121 @@
+# Convert Student Concentration Detection to Web API + Adaptive Frontend
+
+Convert the desktop OpenCV application into a **FastAPI WebSocket backend** + **adaptive HTML/CSS/JS frontend** that captures webcam frames in the browser, sends them for ML processing, and displays concentration data in a stunning real-time dashboard.
+
+## Architecture Overview
+
+```mermaid
+graph LR
+    A[Browser Webcam] -->|Base64 frames via WebSocket| B[FastAPI Backend]
+    B -->|MediaPipe + OpenCV processing| C[ML Engine]
+    C -->|JSON concentration data| B
+    B -->|WebSocket response| D[Frontend Dashboard]
+```
+
+**Key design decision**: The webcam capture happens **in the browser** using `getUserMedia`, frames are sent as base64-encoded images to the backend via WebSocket, and the backend returns JSON state data — no video streaming from the server. This keeps the backend stateless and deployable anywhere.
+
+## Proposed Changes
+
+### Backend — FastAPI WebSocket API
+
+#### [NEW] [app/\_\_init\_\_.py](file:///e:/webd/Edu/ML-Backend/app/__init__.py)
+Empty init file for the `app` package.
+
+#### [NEW] [app/ml_engine.py](file:///e:/webd/Edu/ML-Backend/app/ml_engine.py)
+Extract all ML logic from [main.py](file:///e:/webd/Edu/ML-Backend/main.py) into a reusable class `ConcentrationDetector`:
+- `__init__()` — initialize MediaPipe FaceMesh, state variables, session history
+- `process_frame(frame: np.ndarray) -> dict` — accept a raw frame, run all detection (EAR, head pose, gaze, state classification, score), return JSON-serializable result
+- `get_session_summary() -> dict` — return session analytics
+- `reset_session()` — reset state for new session
+- All helper functions from [main.py](file:///e:/webd/Edu/ML-Backend/main.py) become methods or stay as module-level utilities
+
+#### [NEW] [app/api.py](file:///e:/webd/Edu/ML-Backend/app/api.py)
+FastAPI application:
+- `GET /` — serve the frontend `index.html`
+- `GET /health` — health check endpoint
+- `WebSocket /ws` — real-time frame processing:
+  - Client sends: `{ "image": "<base64-encoded-jpeg>" }`
+  - Server responds: `{ "state": "Focused", "concentration": 85, "ear": 0.28, "yaw": 5.2, "gaze_h": 0.48, "face_detected": true }`
+- `GET /api/session` — get current session summary
+- `POST /api/session/reset` — reset session data
+- Static file mounting for frontend assets
+- CORS middleware for cross-origin support
+
+#### [MODIFY] [requirements.txt](file:///e:/webd/Edu/ML-Backend/requirements.txt)
+Add: `fastapi`, `uvicorn[standard]`, `python-multipart`, `websockets`
+
+---
+
+### Frontend — Adaptive Web Dashboard
+
+#### [NEW] [frontend/index.html](file:///e:/webd/Edu/ML-Backend/frontend/index.html)
+Single-page app with:
+- Webcam video preview with face detection overlay
+- Real-time concentration state badge (color-coded)
+- Concentration score gauge/arc
+- Metrics panel (EAR, Yaw, Gaze values)
+- Session timeline chart
+- Responsive layout (mobile → desktop)
+- SEO tags, proper heading hierarchy
+
+#### [NEW] [frontend/style.css](file:///e:/webd/Edu/ML-Backend/frontend/style.css)
+Modern, premium CSS design:
+- Dark theme with glassmorphism panels
+- CSS custom properties for theming
+- Responsive breakpoints (mobile, tablet, desktop)
+- Smooth animations and transitions
+- Concentration bar with gradient colors
+- State badge animations (pulse effects)
+- Google Font (Inter)
+
+#### [NEW] [frontend/app.js](file:///e:/webd/Edu/ML-Backend/frontend/app.js)
+JavaScript logic:
+- WebSocket connection management (connect, reconnect, heartbeat)
+- `getUserMedia` webcam capture
+- Canvas-based frame capture and base64 encoding
+- Real-time UI updates from WebSocket responses
+- Concentration score history chart (canvas-based)
+- Session timer and analytics
+- Responsive menu/controls
+
+---
+
+### Documentation
+
+#### [MODIFY] [README.md](file:///e:/webd/Edu/ML-Backend/README.md)
+Update with new Web API instructions, deployment guide, and architecture diagram.
+
+## Verification Plan
+
+### Automated Tests
+
+1. **Backend API health check**:
+   ```bash
+   cd e:\webd\Edu\ML-Backend
+   python -c "from app.ml_engine import ConcentrationDetector; d = ConcentrationDetector(); print('ML Engine OK')"
+   ```
+
+2. **Start server and test endpoints**:
+   ```bash
+   cd e:\webd\Edu\ML-Backend
+   python -m uvicorn app.api:app --host 0.0.0.0 --port 8000
+   ```
+   Then in browser navigate to `http://localhost:8000/health` — should return `{"status": "ok"}`.
+
+### Browser Testing
+
+3. **Full end-to-end test**: Open `http://localhost:8000` in Chrome:
+   - Browser should request webcam permission
+   - After granting, the video preview should show the live webcam feed
+   - Concentration state, score, and metrics should update in real-time
+   - Resize the browser to verify responsive layout adapts for mobile/tablet/desktop widths
+
+### User Manual Verification
+
+4. **Responsive design check**: 
+   - Open browser DevTools (F12) → Toggle device toolbar
+   - Switch between mobile (375px), tablet (768px), and desktop (1200px) views
+   - All UI elements should reflow properly without overflow or cut-off text
+
+5. **Deployment readiness**: After testing locally, the user can deploy to [Render](https://render.com) with:
+   - A `render.yaml` or manual setup pointing to `uvicorn app.api:app --host 0.0.0.0 --port $PORT`
