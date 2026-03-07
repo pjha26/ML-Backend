@@ -1,189 +1,164 @@
-# Student Concentration Detection System
+# ConcentraAI — Student Concentration Detection System
 
-A real-time student concentration monitoring system using OpenCV and MediaPipe Face Mesh. Detects and classifies student states as **Focused**, **Distracted**, **Sleepy**, or **Absent** based on facial landmarks, eye tracking, gaze direction, and head pose.
+A real-time AI-powered student concentration monitoring system. Uses **MediaPipe Face Mesh** and **OpenCV** on the backend, with a stunning **React** dashboard frontend. Detects and classifies student states as **Focused**, **Distracted**, **Sleepy**, or **Absent**.
 
-## Features
+## 🖥️ Architecture
 
-✅ **Real-time Detection**
-- Face detection using MediaPipe Face Mesh
-- Eye aspect ratio calculation for blink and sleepiness detection
-- Gaze direction tracking using iris landmarks
-- Head pose estimation (yaw/pitch angles)
-
-✅ **State Classification**
-- **Focused**: Student is attentive and looking forward
-- **Distracted**: Gaze or head turned away (>30° or gaze off-center)
-- **Sleepy**: Eyes closed for more than 2 seconds
-- **Absent**: No face detected in frame
-
-✅ **Concentration Scoring**
-- Dynamic score (0-100%) updated in real-time
-- Penalties: Sleepy (-40), Distracted (-30), Absent (0)
-- Gradual recovery when focused
-
-✅ **Session Analytics**
-- Live concentration percentage display
-- Historical tracking (1-second intervals)
-- Final summary with state distribution and average concentration
-
-## Installation
-
-### Prerequisites
-- Python 3.8 or higher
-- Webcam
-
-### Setup
-
-1. **Clone or navigate to the project directory**
-```bash
-cd e:\webd\Edu\ML-Backend
+```
+Browser (React + Webcam) ──WebSocket──▶ FastAPI Backend ──▶ MediaPipe ML Engine
+        ◀──── JSON data ─────────────────────────────────────┘
 ```
 
-2. **Install dependencies**
+- **Frontend**: React + Vite — captures webcam in browser, displays real-time dashboard
+- **Backend**: FastAPI + WebSocket — receives frames, runs ML inference, returns JSON
+- **ML Engine**: MediaPipe Face Mesh + OpenCV — EAR, head pose, gaze, state detection
+
+## ✨ Features
+
+- 🎯 Real-time concentration detection via webcam
+- 📊 Live concentration score gauge (0-100%)
+- 🧠 State classification: Focused, Distracted, Sleepy, Absent
+- 📈 Session timeline chart with history
+- 📱 Fully responsive: Desktop, Tablet, Mobile
+- 🎨 Premium dark theme with glassmorphism UI
+- ⚡ WebSocket-based low-latency processing
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.8+
+- Node.js 18+
+- Webcam
+
+### 1. Install Backend Dependencies
+
 ```bash
+cd ML-Backend
 pip install -r requirements.txt
 ```
 
-## Usage
+### 2. Install Frontend Dependencies
 
-### Run the program
 ```bash
-python main.py
+cd frontend
+npm install
 ```
 
-### Controls
-- **Q**: Quit and display session summary
+### 3. Run the Application
 
-### What You'll See
-
-**Live Window Display:**
-- Webcam feed with face mesh overlay
-- Green bounding box around detected face
-- State indicator (top-left): Current concentration state
-- Concentration score (below state): Real-time percentage
-- Debug metrics: EAR, Yaw angle, Gaze position
-- Concentration bar (bottom): Visual progress bar
-
-**After Pressing Q:**
-```
-==================================================
-SESSION SUMMARY
-==================================================
-Total Duration: 45.32 seconds
-Total Samples: 45
-
-State Distribution:
-  Focused:       30 ( 66.7%)
-  Distracted:    10 ( 22.2%)
-  Sleepy:         3 (  6.7%)
-  Absent:         2 (  4.4%)
-
-Average Concentration: 78.5%
-==================================================
+**Terminal 1 — Backend (FastAPI)**:
+```bash
+cd ML-Backend
+python -m uvicorn app.api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## How It Works
-
-### 1. **Eye Tracking**
-- Calculates Eye Aspect Ratio (EAR) using 6 landmarks per eye
-- EAR < 0.25 = eyes closed
-- Eyes closed > 2 seconds = **Sleepy**
-
-### 2. **Gaze Detection**
-- Uses iris landmarks (468-477) to track eye position
-- Calculates horizontal/vertical iris position relative to eye corners
-- Off-center gaze (>15% deviation) = **Distracted**
-
-### 3. **Head Pose Estimation**
-- Uses PnP algorithm with 6 facial landmarks
-- Calculates yaw (left-right) and pitch (up-down) angles
-- Head turn > 30° = **Distracted**
-
-### 4. **State Priority**
-```
-Absent > Sleepy > Distracted > Focused
+**Terminal 2 — Frontend (React)**:
+```bash
+cd ML-Backend/frontend
+npm run dev
 ```
 
-### 5. **Concentration Score**
-- Starts at 100%
-- Decreases based on state penalties
-- Slowly recovers (+1/frame) when focused
-- Minimum: 0%, Maximum: 100%
+### 4. Open the App
 
-## Code Structure
+Navigate to **http://localhost:5173** in your browser. Click **Start Detection** and allow camera access.
+
+## 📂 Project Structure
 
 ```
-main.py
-├── Configuration constants
-├── MediaPipe setup
-├── Helper functions
-│   ├── calculate_eye_aspect_ratio()    # EAR calculation
-│   ├── get_eye_landmarks()             # Extract eye coordinates
-│   ├── calculate_head_pose()           # Yaw/pitch estimation
-│   ├── calculate_gaze_direction()      # Iris tracking
-│   ├── detect_concentration_state()    # State classification
-│   ├── calculate_concentration_score() # Score updates
-│   ├── draw_ui()                       # UI rendering
-│   └── print_summary()                 # Final report
-└── main()                              # Main loop
+ML-Backend/
+├── app/
+│   ├── __init__.py
+│   ├── api.py              # FastAPI WebSocket + REST API
+│   └── ml_engine.py         # MediaPipe concentration detection engine
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── WebcamView.jsx
+│   │   │   ├── ConcentrationGauge.jsx
+│   │   │   ├── MetricsPanel.jsx
+│   │   │   ├── TimelineChart.jsx
+│   │   │   └── SessionStats.jsx
+│   │   ├── hooks/
+│   │   │   ├── useConcentraSocket.js
+│   │   │   └── useWebcam.js
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
+├── main.py                  # Original desktop version (legacy)
+├── requirements.txt
+└── README.md
 ```
 
-## Customization
+## 🔌 API Endpoints
 
-### Adjust Thresholds
-Edit these constants in `main.py`:
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check |
+| `WS` | `/ws/{client_id}` | WebSocket for real-time frame processing |
+| `GET` | `/api/session/{client_id}` | Get session summary |
+| `POST` | `/api/session/{client_id}/reset` | Reset session data |
+
+### WebSocket Protocol
+
+**Client sends:**
+```json
+{ "image": "data:image/jpeg;base64,..." }
+```
+
+**Server responds:**
+```json
+{
+  "state": "Focused",
+  "concentration": 85.0,
+  "face_detected": true,
+  "ear": 0.287,
+  "yaw": 5.2,
+  "pitch": -3.1,
+  "gaze_h": 0.483,
+  "gaze_v": 0.512,
+  "blink_count": 14,
+  "session_duration": 45.2
+}
+```
+
+## 🚢 Deployment
+
+### Build Frontend for Production
+
+```bash
+cd frontend
+npm run build
+```
+
+This creates `frontend/dist/` which the FastAPI app auto-serves.
+
+### Run in Production
+
+```bash
+python -m uvicorn app.api:app --host 0.0.0.0 --port 8000
+```
+
+### Deploy to Render / Railway
+
+1. Set build command: `cd frontend && npm install && npm run build`
+2. Set start command: `uvicorn app.api:app --host 0.0.0.0 --port $PORT`
+3. Set Python + Node.js buildpacks
+
+## 🎛️ Configuration
+
+Edit thresholds in `app/ml_engine.py`:
 
 ```python
-EYE_AR_THRESH = 0.25              # Eye closure threshold
-SLEEPY_TIME_THRESHOLD = 2.0       # Seconds for sleepy state
-HEAD_POSE_THRESHOLD = 30          # Degrees for head turn
-GAZE_THRESHOLD = 0.15             # Gaze deviation threshold
-
-PENALTY_SLEEPY = 40               # Score penalty for sleepy
-PENALTY_DISTRACTED = 30           # Score penalty for distracted
+EYE_AR_THRESH = 0.25          # Eye closure threshold
+SLEEPY_TIME_THRESHOLD = 2.0   # Seconds for sleepy state
+HEAD_POSE_THRESHOLD = 30      # Degrees for head turn
+GAZE_THRESHOLD = 0.15         # Gaze deviation threshold
 ```
 
-### Camera Settings
-```python
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)   # Resolution
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-cap.set(cv2.CAP_PROP_FPS, 30)            # Frame rate
-```
-
-## Performance
-
-- **Fast**: Optimized for real-time processing (30 FPS)
-- **Offline**: No external API calls, runs completely locally
-- **Lightweight**: Minimal dependencies (OpenCV, MediaPipe, NumPy)
-
-## Troubleshooting
-
-**Webcam not opening:**
-- Check if another application is using the camera
-- Try changing camera index: `cv2.VideoCapture(1)` or `cv2.VideoCapture(2)`
-
-**Low FPS:**
-- Reduce camera resolution
-- Comment out face mesh drawing for better performance
-- Close other applications
-
-**Inaccurate detection:**
-- Ensure good lighting
-- Position face clearly in frame
-- Adjust threshold values
-
-## Technical Details
-
-- **MediaPipe Face Mesh**: 478 facial landmarks
-- **Eye Landmarks**: 6 points per eye (33, 160, 158, 133, 153, 144 for left)
-- **Iris Landmarks**: 5 points per iris (468-472 for left, 473-477 for right)
-- **Head Pose**: PnP algorithm with 6 key facial points
-- **EAR Formula**: `(||p2-p6|| + ||p3-p5||) / (2 * ||p1-p4||)`
-
-## License
+## 📄 License
 
 Free to use for educational purposes.
-
-## Author
-
-Built with ❤️ using OpenCV and MediaPipe
