@@ -20,9 +20,14 @@ export function useWebcam(fps = 5) {
             });
             streamRef.current = stream;
 
+            // Assign stream to video element
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
-                await videoRef.current.play();
+                try {
+                    await videoRef.current.play();
+                } catch (playErr) {
+                    console.warn('[Webcam] Autoplay blocked, user interaction may be needed:', playErr);
+                }
             }
 
             setIsActive(true);
