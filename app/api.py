@@ -68,6 +68,22 @@ async def reset_session(client_id: str):
     )
 
 
+@app.post("/api/insights")
+async def get_insights(data: dict):
+    """Generate AI study insights from session data using Gemini."""
+    from app.ai_coach import generate_study_insights
+    try:
+        insights = await asyncio.get_event_loop().run_in_executor(
+            None, generate_study_insights, data
+        )
+        return {"insights": insights}
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to generate insights: {str(e)}"}
+        )
+
+
 # ==================== WEBSOCKET ENDPOINT ====================
 
 @app.websocket("/ws/{client_id}")
