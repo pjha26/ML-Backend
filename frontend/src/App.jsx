@@ -1,22 +1,40 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import WebcamView from './components/WebcamView';
 import ConcentrationGauge from './components/ConcentrationGauge';
 import MetricsPanel from './components/MetricsPanel';
 import TimelineChart from './components/TimelineChart';
 import SessionStats from './components/SessionStats';
+import SettingsPanel from './components/SettingsPanel';
 import { useConcentraSocket } from './hooks/useConcentraSocket';
 import { useWebcam } from './hooks/useWebcam';
+import { useAlerts, DEFAULT_SETTINGS } from './hooks/useAlerts';
 
 export default function App() {
   const [isDetecting, setIsDetecting] = useState(false);
   const [history, setHistory] = useState([]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [alertSettings, setAlertSettings] = useState(() => {
+    // Load saved settings from localStorage
+    try {
+      const saved = localStorage.getItem('concentra-alert-settings');
+      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
   const historyRef = useRef([]);
 
   const { isConnected, data, connect, disconnect, sendFrame, resetSession } =
     useConcentraSocket();
   const { videoRef, isActive, startCamera, stopCamera, startCapture, stopCapture } =
-    useWebcam(5); // 5 FPS
+    useWebcam(5);
+  const { checkAndAlert, resetCooldown } = useAlerts(alertSettings);
+
+  // Save settings to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('concentra-alert-settings', JSON.stringify(alertSettings));
+  }, [alertSettings]);
 
   // Track history from ML data
   const lastHistoryTimeRef = useRef(0);
@@ -27,10 +45,14 @@ export default function App() {
     [sendFrame]
   );
 
-  // Update history when data changes
+  // Update history and check alerts when data changes
   const prevDataRef = useRef(null);
   if (data && data !== prevDataRef.current && data.session_duration) {
     prevDataRef.current = data;
+
+    // Check alerts on every new data point
+    checkAndAlert(data);
+
     const now = data.session_duration;
     if (now - lastHistoryTimeRef.current >= 1.0) {
       lastHistoryTimeRef.current = now;
@@ -40,7 +62,6 @@ export default function App() {
         state: data.state,
       };
       historyRef.current = [...historyRef.current.slice(-119), newPoint];
-      // We use a ref + state pattern to avoid stale closures
       if (historyRef.current.length !== history.length) {
         setHistory([...historyRef.current]);
       }
@@ -54,7 +75,6 @@ export default function App() {
       return;
     }
     connect();
-    // Wait briefly for WebSocket to connect, then start capture
     setTimeout(() => {
       startCapture(handleFrame);
       setIsDetecting(true);
@@ -71,6 +91,7 @@ export default function App() {
   const handleReset = () => {
     handleStop();
     resetSession();
+    resetCooldown();
     setHistory([]);
     historyRef.current = [];
     lastHistoryTimeRef.current = 0;
@@ -82,6 +103,7 @@ export default function App() {
       <Navbar
         sessionDuration={data?.session_duration ?? 0}
         isConnected={isConnected}
+        onSettingsClick={() => setSettingsOpen(true)}
       />
 
       <main className="app-container">
@@ -127,6 +149,14 @@ export default function App() {
         {/* Session Stats */}
         <SessionStats data={data} history={history} />
       </main>
+
+      {/* Settings Panel */}
+      <SettingsPanel
+        settings={alertSettings}
+        onSettingsChange={setAlertSettings}
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
     </>
   );
 }
