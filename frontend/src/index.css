@@ -1563,3 +1563,133 @@ body::after {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==================================================================
+   POMODORO TIMER
+   ================================================================== */
+.pomodoro-card {
+  padding: 22px;
+}
+
+.pomodoro-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.pomodoro-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pomodoro-preset {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: var(--transition);
+  outline: none;
+}
+
+.pomodoro-preset option {
+  background: var(--bg-card-solid);
+  color: var(--text-primary);
+}
+
+.pomodoro-preset:hover {
+  border-color: var(--border-glow);
+}
+
+.pomodoro-ring-wrapper {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 14px;
+}
+
+.pomodoro-ring {
+  width: 100%;
+  height: 100%;
+}
+
+.pomodoro-time-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.pomodoro-time {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.pomodoro-phase-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.pomodoro-cycle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.pomodoro-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.pomodoro-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.pomodoro-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.pomodoro-log {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+.pomodoro-log-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pomodoro-log-score {
+  font-size: 14px;
+  font-weight: 700;
+}

@@ -10,9 +10,11 @@ import MetricsPanel from '../components/MetricsPanel';
 import TimelineChart from '../components/TimelineChart';
 import SessionStats from '../components/SessionStats';
 import SettingsPanel from '../components/SettingsPanel';
+import PomodoroTimer from '../components/PomodoroTimer';
 import { useConcentraSocket } from '../hooks/useConcentraSocket';
 import { useWebcam } from '../hooks/useWebcam';
 import { useAlerts, DEFAULT_SETTINGS } from '../hooks/useAlerts';
+import { usePomodoro } from '../hooks/usePomodoro';
 
 /** Save a completed session to localStorage */
 function saveSession(history, data) {
@@ -58,6 +60,7 @@ export default function DashboardPage() {
             return DEFAULT_SETTINGS;
         }
     });
+    const [pomodoroPreset, setPomodoroPreset] = useState('classic');
     const historyRef = useRef([]);
 
     const { isConnected, data, connect, disconnect, sendFrame, resetSession } =
@@ -65,6 +68,7 @@ export default function DashboardPage() {
     const { videoRef, isActive, startCamera, stopCamera, startCapture, stopCapture } =
         useWebcam(5);
     const { checkAndAlert, resetCooldown } = useAlerts(alertSettings);
+    const pomodoro = usePomodoro(pomodoroPreset);
 
     useEffect(() => {
         localStorage.setItem('concentra-alert-settings', JSON.stringify(alertSettings));
@@ -82,6 +86,7 @@ export default function DashboardPage() {
     if (data && data !== prevDataRef.current && data.session_duration) {
         prevDataRef.current = data;
         checkAndAlert(data);
+        pomodoro.trackConcentration(data.concentration);
         const now = data.session_duration;
         if (now - lastHistoryTimeRef.current >= 1.0) {
             lastHistoryTimeRef.current = now;
@@ -186,6 +191,20 @@ export default function DashboardPage() {
                             </div>
                         </div>
                     </div>
+                    <PomodoroTimer
+                        phase={pomodoro.phase}
+                        timeLeft={pomodoro.timeLeft}
+                        totalTime={pomodoro.totalTime}
+                        cycle={pomodoro.cycle}
+                        isRunning={pomodoro.isRunning}
+                        pomodoroLog={pomodoro.pomodoroLog}
+                        onStart={pomodoro.start}
+                        onPause={pomodoro.pause}
+                        onReset={pomodoro.reset}
+                        onSkip={pomodoro.skip}
+                        preset={pomodoroPreset}
+                        onPresetChange={setPomodoroPreset}
+                    />
                 </div>
                 <TimelineChart history={history} />
                 <SessionStats data={data} history={history} />
