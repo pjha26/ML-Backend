@@ -126,15 +126,16 @@ def detect_concentration_state(ear, eyes_closed_time, yaw, gaze_h, face_detected
 
 
 def calculate_concentration_score(state, current_score):
-    """Calculate concentration score based on current state."""
+    """Calculate concentration score based on current state.
+    Tuned for ~5 FPS processing rate so changes feel smooth."""
     if state == "Absent":
-        return 0
+        return max(0, current_score - 8)
     elif state == "Sleepy":
-        return max(0, current_score - PENALTY_SLEEPY)
+        return max(0, current_score - 5)
     elif state == "Distracted":
-        return max(0, current_score - PENALTY_DISTRACTED)
-    else:
-        return min(100, current_score + 1)
+        return max(0, current_score - 3)
+    else:  # Focused
+        return min(100, current_score + 3)
 
 
 # ==================== CONCENTRATION DETECTOR CLASS ====================
@@ -152,7 +153,7 @@ class ConcentrationDetector:
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5
         )
-        self.concentration_score = 100.0
+        self.concentration_score = 50.0
         self.eyes_closed_start = None
         self.eyes_closed_time = 0.0
         self.blink_counter = 0
@@ -162,7 +163,7 @@ class ConcentrationDetector:
 
     def reset_session(self):
         """Reset session data."""
-        self.concentration_score = 100.0
+        self.concentration_score = 50.0
         self.eyes_closed_start = None
         self.eyes_closed_time = 0.0
         self.blink_counter = 0

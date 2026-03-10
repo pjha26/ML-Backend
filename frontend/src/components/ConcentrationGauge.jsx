@@ -38,7 +38,7 @@ export default function ConcentrationGauge({ concentration = 0, state = 'Absent'
                 </svg>
                 <div className="gauge-score">
                     <div className="gauge-score-value" style={{ color: gaugeColor }}>
-                        {Math.round(concentration)}
+                        {Math.round(concentration)}<span style={{ fontSize: '24px', letterSpacing: 0 }}>%</span>
                     </div>
                     <div className="gauge-score-label">Concentration</div>
                 </div>

@@ -406,7 +406,7 @@ body::after {
 
 .gauge-bg {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.04);
+  stroke: rgba(255, 255, 255, 0.08);
   stroke-width: 8;
 }
 
