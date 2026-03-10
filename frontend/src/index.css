@@ -1488,8 +1488,16 @@ body::after {
   letter-spacing: 0.5px;
 }
 
+.history-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
 .history-insight {
-  margin-top: 16px;
+  margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid var(--border-subtle);
 }

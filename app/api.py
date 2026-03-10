@@ -9,7 +9,7 @@ import json
 import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.ml_engine import ConcentrationDetector
@@ -81,6 +81,31 @@ async def get_insights(data: dict):
         return JSONResponse(
             status_code=500,
             content={"error": f"Failed to generate insights: {str(e)}"}
+        )
+
+
+@app.post("/api/report")
+async def generate_report(data: dict):
+    """Generate a PDF session report."""
+    from app.pdf_report import generate_session_pdf
+    try:
+        pdf_bytes = await asyncio.get_event_loop().run_in_executor(
+            None, generate_session_pdf, data
+        )
+        if pdf_bytes is None:
+            return JSONResponse(
+                status_code=501,
+                content={"error": "PDF generation not available. Install reportlab."}
+            )
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": "attachment; filename=concentra-report.pdf"}
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"PDF generation failed: {str(e)}"}
         )
 
 
