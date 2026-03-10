@@ -1,42 +1,35 @@
 /**
- * ConcentrationGauge — circular SVG gauge showing concentration score
- * with gradient arc and state badge.
+ * ConcentrationGauge — circular SVG gauge with neon glow effect
+ * showing concentration score and animated state badge.
  */
 
-const STATE_CONFIG = {
-    Focused: { color: '#10b981' },
-    Distracted: { color: '#f59e0b' },
-    Sleepy: { color: '#eab308' },
-    Absent: { color: '#ef4444' },
-};
-
 function getGaugeColor(score) {
-    if (score >= 70) return '#10b981';
-    if (score >= 40) return '#f59e0b';
+    if (score >= 70) return '#22c55e';
+    if (score >= 40) return '#f97316';
     return '#ef4444';
 }
 
+function getGlowFilter(score) {
+    if (score >= 70) return 'drop-shadow(0 0 8px rgba(34, 197, 94, 0.4))';
+    if (score >= 40) return 'drop-shadow(0 0 8px rgba(249, 115, 22, 0.4))';
+    return 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.4))';
+}
+
 export default function ConcentrationGauge({ concentration = 0, state = 'Absent' }) {
-    const radius = 75;
+    const radius = 80;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (concentration / 100) * circumference;
     const gaugeColor = getGaugeColor(concentration);
-    const stateColor = STATE_CONFIG[state]?.color || '#ef4444';
 
     return (
         <div className="gauge-card glass-card fade-in" id="concentration-gauge">
             <div className="gauge-wrapper">
-                <svg className="gauge-svg" viewBox="0 0 180 180">
-                    <circle
-                        className="gauge-bg"
-                        cx="90"
-                        cy="90"
-                        r={radius}
-                    />
+                <svg className="gauge-svg" viewBox="0 0 190 190" style={{ filter: getGlowFilter(concentration) }}>
+                    <circle className="gauge-bg" cx="95" cy="95" r={radius} />
                     <circle
                         className="gauge-fill"
-                        cx="90"
-                        cy="90"
+                        cx="95"
+                        cy="95"
                         r={radius}
                         stroke={gaugeColor}
                         strokeDasharray={circumference}
