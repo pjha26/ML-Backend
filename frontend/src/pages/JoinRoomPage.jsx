@@ -25,10 +25,13 @@ export default function JoinRoomPage() {
     const [error, setError] = useState('');
     const [isDetecting, setIsDetecting] = useState(false);
 
-    const clientId = useRef(`student-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
-
-    const { isConnected, data, connect, disconnect, sendFrame } = useConcentraSocket();
+    // Use the SAME clientId from the WebSocket hook for room join
+    const { isConnected, data, connect, disconnect, sendFrame, clientId } = useConcentraSocket();
     const { videoRef, isActive, startCamera, stopCamera, startCapture, stopCapture } = useWebcam(5);
+
+    // Keep roomCode in a ref so the frame callback always has the latest value
+    const roomCodeRef = useRef(roomCode);
+    useEffect(() => { roomCodeRef.current = roomCode; }, [roomCode]);
 
     const joinRoom = async () => {
         if (!studentName.trim()) { setError('Enter your name'); return; }
@@ -42,7 +45,7 @@ export default function JoinRoomPage() {
                 body: JSON.stringify({
                     code: roomCode.trim().toUpperCase(),
                     studentName: studentName.trim(),
-                    clientId: clientId.current,
+                    clientId: clientId,  // Same ID the WebSocket will use
                 }),
             });
             if (!resp.ok) {
@@ -62,9 +65,9 @@ export default function JoinRoomPage() {
     // Send frames with roomCode attached so backend forwards to teacher
     const handleFrame = useCallback(
         (base64Image) => {
-            sendFrame(base64Image, roomCode.toUpperCase());
+            sendFrame(base64Image, roomCodeRef.current.toUpperCase());
         },
-        [sendFrame, roomCode]
+        [sendFrame]
     );
 
     const handleStart = async () => {
@@ -90,7 +93,7 @@ export default function JoinRoomPage() {
             await fetch(`${getApiBase()}/api/classroom/${roomCode}/leave`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ clientId: clientId.current }),
+                body: JSON.stringify({ clientId: clientId }),
             });
         } catch (e) { /* ignore */ }
         navigate('/classroom');
@@ -98,7 +101,9 @@ export default function JoinRoomPage() {
 
     useEffect(() => {
         return () => {
-            handleStop();
+            stopCapture();
+            stopCamera();
+            disconnect();
         };
     }, []);
 
@@ -113,9 +118,15 @@ export default function JoinRoomPage() {
                 </div>
                 <div className="navbar-status">
                     {step === 'active' && (
-                        <div className="classroom-code-badge">
-                            Room: <strong>{roomCode}</strong> · {teacherName}
-                        </div>
+                        <>
+                            <div className="classroom-code-badge">
+                                Room: <strong>{roomCode}</strong> · {teacherName}
+                            </div>
+                            <div
+                                className={`connection-dot ${isConnected ? 'connected' : ''}`}
+                                title={isConnected ? 'Connected' : 'Disconnected'}
+                            />
+                        </>
                     )}
                 </div>
             </nav>
@@ -163,9 +174,20 @@ export default function JoinRoomPage() {
                     <div className="join-active">
                         <div className="join-active-info glass-card">
                             <span>Connected to <strong>{teacherName}'s</strong> room</span>
-                            <button className="btn btn-outline" onClick={leaveRoom} style={{ fontSize: '12px', padding: '8px 14px' }}>
-                                Leave Room
-                            </button>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                {data && (
+                                    <span style={{
+                                        fontSize: '13px',
+                                        color: data.concentration >= 60 ? '#22c55e' : data.concentration >= 30 ? '#f97316' : '#ef4444',
+                                        fontWeight: 600,
+                                    }}>
+                                        {Math.round(data.concentration)}% {data.state}
+                                    </span>
+                                )}
+                                <button className="btn btn-outline" onClick={leaveRoom} style={{ fontSize: '12px', padding: '8px 14px' }}>
+                                    Leave Room
+                                </button>
+                            </div>
                         </div>
                         <div className="join-grid">
                             <WebcamView ref={videoRef} isActive={isActive} isDetecting={isDetecting} />

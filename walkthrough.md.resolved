@@ -1,0 +1,205 @@
+# ConcentraAI — System Design & Architecture
+
+## 1. System Overview
+
+ConcentraAI is a **real-time AI-powered student concentration detection system** that uses computer vision to track focus, alert users when distracted, and provide AI-generated study insights.
+
+```mermaid
+graph TB
+    subgraph Client["🖥️ Browser (React + Vite)"]
+        CAM["📷 Webcam"] --> HOOK["useWebcam Hook"]
+        HOOK -->|"Base64 JPEG @ 5 FPS"| WS_CLIENT["useConcentraSocket"]
+        WS_CLIENT -->|"JSON Results"| DASHBOARD["Dashboard UI"]
+        DASHBOARD --> GAUGE["Concentration Gauge"]
+        DASHBOARD --> CHART["Timeline Chart"]
+        DASHBOARD --> METRICS["Metrics Panel"]
+        DASHBOARD --> POMO["Pomodoro Timer"]
+        DASHBOARD --> ALERTS["Smart Alerts"]
+    end
+
+    subgraph Server["⚡ FastAPI Backend"]
+        WS_SERVER["WebSocket /ws/:id"]
+        REST["REST API"]
+        ML["ML Engine (MediaPipe)"]
+        AI["Gemini AI Coach"]
+        PDF["PDF Generator"]
+    end
+
+    WS_CLIENT <-->|"WebSocket"| WS_SERVER
+    WS_SERVER --> ML
+    REST --> AI
+    REST --> PDF
+
+    subgraph Deploy["☁️ Deployment"]
+        VERCEL["Vercel (Frontend)"]
+        RENDER["Render (Backend)"]
+    end
+```
+
+## 2. Architecture Layers
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | React 19 + Vite 7 | SPA with router, hooks, canvas charts |
+| **WebSocket** | Native WS + FastAPI | Real-time frame streaming at 5 FPS |
+| **REST API** | FastAPI | Session mgmt, AI insights, PDF reports |
+| **ML Engine** | MediaPipe + OpenCV | Face mesh (478 landmarks), EAR, gaze, head pose |
+| **AI Coach** | Gemini 2.0 Flash | Personalized study recommendations |
+| **PDF Reports** | ReportLab | Downloadable session reports |
+| **Deploy** | Vercel + Render | Split deployment (static + Python) |
+| **CI/CD** | GitHub Actions | Auto-test on push (pytest + build) |
+
+## 3. Data Flow
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant WS as WebSocket
+    participant ML as ML Engine
+    participant G as Gemini AI
+
+    B->>B: Capture webcam frame
+    B->>WS: Send base64 JPEG
+    WS->>ML: Decode + process frame
+    ML->>ML: Face Mesh (478 landmarks)
+    ML->>ML: Calculate EAR, head pose, gaze
+    ML->>ML: Classify state + update score
+    ML-->>WS: JSON result
+    WS-->>B: Real-time metrics
+    B->>B: Update gauge, chart, alerts
+
+    Note over B: On session end
+    B->>B: Save to localStorage
+    B->>G: POST /api/insights
+    G-->>B: Study recommendations
+```
+
+## 4. ML Pipeline
+
+```mermaid
+graph LR
+    A["Camera Frame"] --> B["MediaPipe Face Mesh"]
+    B --> C["478 Landmarks"]
+    C --> D["EAR Calculation"]
+    C --> E["Head Pose (PnP)"]
+    C --> F["Gaze Direction"]
+    D --> G["State Classifier"]
+    E --> G
+    F --> G
+    G --> H{"State"}
+    H -->|"Eyes open + forward"| I["✅ Focused (+3)"]
+    H -->|"Eyes closed > 2s"| J["😴 Sleepy (-5)"]
+    H -->|"Head turned > 30°"| K["🎯 Distracted (-3)"]
+    H -->|"No face"| L["👋 Absent (-8)"]
+    I --> M["Concentration Score (0-100)"]
+    J --> M
+    K --> M
+    L --> M
+```
+
+## 5. Frontend Route Map
+
+| Route | Component | Purpose |
+|-------|-----------|---------|
+| `/` | [LandingPage](file:///e:/webd/Edu/ML-Backend/frontend/src/pages/LandingPage.jsx#50-186) | Marketing page with hero, features, CTA |
+| `/app` | `DashboardPage` | Main detection dashboard |
+| `/history` | `HistoryPage` | Past sessions with AI insights + PDF download |
+| `/classroom` | `ClassroomPage` | Teacher creates room (coming) |
+| `/join/:code` | `StudentJoinPage` | Student joins classroom (coming) |
+
+## 6. Component Tree
+
+```
+App (Router)
+├── LandingPage
+│   └── Hero, Features, Steps, Tech Stack, CTA
+├── DashboardPage
+│   ├── Navbar (timer, settings, history link)
+│   ├── WebcamView (video + scanning overlay)
+│   ├── ConcentrationGauge (SVG ring + state badge)
+│   ├── MetricsPanel (EAR, yaw, gaze, blinks)
+│   ├── Controls (Start/Stop/Reset)
+│   ├── PomodoroTimer (SVG ring, presets, cycle log)
+│   ├── TimelineChart (canvas area chart)
+│   ├── SessionStats (summary cards)
+│   └── SettingsPanel (alerts config, slide-out)
+├── HistoryPage
+│   └── SessionCards (distribution bar, AI insight, PDF)
+└── ClassroomPage (coming)
+    ├── CreateRoom (teacher)
+    └── StudentGrid (live focus scores)
+```
+
+## 7. Key Hooks
+
+| Hook | File | Purpose |
+|------|------|---------|
+| `useWebcam` | `hooks/useWebcam.js` | Camera access, frame capture at configurable FPS |
+| `useConcentraSocket` | `hooks/useConcentraSocket.js` | WebSocket connection, auto-reconnect, frame sending |
+| `useAlerts` | `hooks/useAlerts.js` | Browser notifications + Web Audio chimes with cooldown |
+| `usePomodoro` | `hooks/usePomodoro.js` | Work/break timer with 3 presets, concentration tracking |
+
+## 8. Backend API Endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/health` | Health check |
+| `GET` | `/api/session/:id` | Get session summary |
+| `POST` | `/api/session/:id/reset` | Reset session |
+| `POST` | `/api/insights` | Gemini AI study insights |
+| `POST` | `/api/report` | Generate PDF report |
+| `WS` | `/ws/:client_id` | Real-time frame processing |
+
+## 9. Deployment Architecture
+
+```mermaid
+graph LR
+    USER["👤 User"] -->|"HTTPS"| VERCEL["Vercel CDN"]
+    VERCEL -->|"Static HTML/JS/CSS"| REACT["React SPA"]
+    REACT -->|"WebSocket + REST"| RENDER["Render"]
+    RENDER --> FASTAPI["FastAPI + uvicorn"]
+    FASTAPI --> MEDIAPIPE["MediaPipe"]
+    FASTAPI --> GEMINI["Gemini API"]
+```
+
+## 10. File Structure
+
+```
+ML-Backend/
+├── app/
+│   ├── __init__.py
+│   ├── api.py              # FastAPI routes + WebSocket
+│   ├── ml_engine.py         # MediaPipe concentration detection
+│   ├── ai_coach.py          # Gemini AI study recommendations
+│   └── pdf_report.py        # ReportLab PDF generator
+├── tests/
+│   └── test_ml_engine.py    # pytest test suite
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx           # React Router
+│   │   ├── index.css         # 1700+ lines design system
+│   │   ├── pages/
+│   │   │   ├── LandingPage.jsx
+│   │   │   ├── DashboardPage.jsx
+│   │   │   └── HistoryPage.jsx
+│   │   ├── components/
+│   │   │   ├── WebcamView.jsx
+│   │   │   ├── ConcentrationGauge.jsx
+│   │   │   ├── MetricsPanel.jsx
+│   │   │   ├── TimelineChart.jsx
+│   │   │   ├── SessionStats.jsx
+│   │   │   ├── PomodoroTimer.jsx
+│   │   │   ├── SettingsPanel.jsx
+│   │   │   └── Navbar.jsx
+│   │   └── hooks/
+│   │       ├── useWebcam.js
+│   │       ├── useConcentraSocket.js
+│   │       ├── useAlerts.js
+│   │       └── usePomodoro.js
+│   ├── vercel.json
+│   └── vite.config.js
+├── .github/workflows/ci.yml
+├── requirements.txt
+├── render.yaml
+└── .python-version
+```
