@@ -1967,9 +1967,41 @@ body::after {
 
 .join-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 280px;
   gap: 20px;
   align-items: start;
+}
+
+.join-grid .sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.join-grid .gauge-card {
+  overflow: hidden;
+}
+
+.join-grid .gauge-wrapper {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 16px;
+}
+
+.join-grid .gauge-score-value {
+  font-size: 40px;
+}
+
+@media (max-width: 900px) {
+  .join-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .join-grid .gauge-wrapper {
+    width: 190px;
+    height: 190px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1985,9 +2017,5 @@ body::after {
     width: 40px;
     height: 48px;
     font-size: 20px;
-  }
-
-  .join-grid {
-    grid-template-columns: 1fr;
   }
 }
