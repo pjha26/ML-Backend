@@ -34,6 +34,11 @@ const FEATURES = [
         title: 'Real-time WebSocket',
         desc: 'Low-latency processing at 5 FPS via WebSocket — no page reloads, instant feedback.',
     },
+    {
+        icon: '🧑‍🏫',
+        title: 'Classroom Mode',
+        desc: 'Teachers create rooms, students join — live grid shows every student\'s focus in real-time.',
+    },
 ];
 
 const TECH_STACK = [
@@ -61,6 +66,7 @@ export default function LandingPage() {
                         <a href="#features">Features</a>
                         <a href="#tech">Tech Stack</a>
                         <a href="#how">How It Works</a>
+                        <Link to="/classroom" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Classroom</Link>
                         <Link to="/app" className="btn btn-primary" style={{ flex: 'none', padding: '10px 24px' }}>
                             Launch App →
                         </Link>
@@ -86,9 +92,9 @@ export default function LandingPage() {
                         <Link to="/app" className="btn btn-primary btn-lg">
                             ▶ Start Free Session
                         </Link>
-                        <a href="#how" className="btn btn-outline btn-lg">
-                            See How It Works
-                        </a>
+                        <Link to="/classroom" className="btn btn-outline btn-lg">
+                            🧑‍🏫 Classroom Mode
+                        </Link>
                     </div>
                     <div className="hero-stats">
                         <div className="hero-stat">

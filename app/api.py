@@ -108,6 +108,84 @@ async def generate_report(data: dict):
             content={"error": f"PDF generation failed: {str(e)}"}
         )
 
+# ==================== CLASSROOM MODE ====================
+
+from app.classroom import room_manager
+
+
+@app.post("/api/classroom/create")
+async def create_classroom(data: dict):
+    """Teacher creates a classroom room."""
+    teacher_name = data.get("teacherName", "Teacher")
+    room = room_manager.create_room(teacher_name)
+    return {"code": room.code, "teacherName": room.teacher_name}
+
+
+@app.post("/api/classroom/join")
+async def join_classroom(data: dict):
+    """Student joins a classroom room."""
+    code = data.get("code", "").upper()
+    student_name = data.get("studentName", "Student")
+    client_id = data.get("clientId", "")
+    room = room_manager.get_room(code)
+    if not room:
+        return JSONResponse(status_code=404, content={"error": "Room not found"})
+    room_manager.join_room(code, student_name, client_id)
+    return {"code": code, "teacherName": room.teacher_name, "studentCount": len(room.students)}
+
+
+@app.get("/api/classroom/{code}")
+async def get_classroom(code: str):
+    """Get classroom room info."""
+    room = room_manager.get_room(code.upper())
+    if not room:
+        return JSONResponse(status_code=404, content={"error": "Room not found"})
+    return room.to_dict()
+
+
+@app.post("/api/classroom/{code}/leave")
+async def leave_classroom(code: str, data: dict):
+    """Student leaves a classroom room."""
+    client_id = data.get("clientId", "")
+    room_manager.leave_room(code.upper(), client_id)
+    return {"status": "left"}
+
+
+@app.websocket("/ws/classroom/{code}")
+async def classroom_teacher_ws(websocket: WebSocket, code: str):
+    """Teacher WebSocket — broadcasts live student data every 2 seconds."""
+    await websocket.accept()
+    room = room_manager.get_room(code.upper())
+    if not room:
+        await websocket.send_json({"error": "Room not found"})
+        await websocket.close()
+        return
+
+    room.teacher_ws = websocket
+    print(f"[Classroom] Teacher connected to room {code}")
+
+    try:
+        while True:
+            # Wait for ping or just send updates periodically
+            try:
+                await asyncio.wait_for(websocket.receive_text(), timeout=2.0)
+            except asyncio.TimeoutError:
+                pass
+
+            # Broadcast current student data
+            room = room_manager.get_room(code.upper())
+            if room:
+                await websocket.send_json(room.to_dict())
+            else:
+                await websocket.send_json({"error": "Room closed"})
+                break
+    except Exception as e:
+        print(f"[Classroom] Teacher disconnected from room {code}: {e}")
+    finally:
+        room = room_manager.get_room(code.upper())
+        if room:
+            room.teacher_ws = None
+
 
 # ==================== WEBSOCKET ENDPOINT ====================
 
@@ -147,6 +225,14 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 result = await asyncio.get_event_loop().run_in_executor(
                     None, detector.process_frame, frame
                 )
+
+                # Update classroom room if student is in one
+                room_code = message.get("roomCode")
+                if room_code:
+                    room_manager.update_student(
+                        room_code, client_id,
+                        result["concentration"], result["state"]
+                    )
 
                 await websocket.send_json(result)
             except Exception as e:

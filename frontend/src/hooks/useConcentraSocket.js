@@ -74,9 +74,11 @@ export function useConcentraSocket() {
         setIsConnected(false);
     }, []);
 
-    const sendFrame = useCallback((base64Image) => {
+    const sendFrame = useCallback((base64Image, roomCode) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({ image: base64Image }));
+            const msg = { image: base64Image };
+            if (roomCode) msg.roomCode = roomCode;
+            wsRef.current.send(JSON.stringify(msg));
         }
     }, []);
 
