@@ -9,7 +9,7 @@ export function useConcentraSocket() {
     const [isConnected, setIsConnected] = useState(false);
     const [data, setData] = useState(null);
     const wsRef = useRef(null);
-    const clientIdRef = useRef(`client_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+    const [clientId] = useState(() => `client_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
     const reconnectTimerRef = useRef(null);
 
     const getBackendUrl = useCallback(() => {
@@ -54,6 +54,7 @@ export function useConcentraSocket() {
         ws.onclose = () => {
             setIsConnected(false);
             console.log('[ConcentraAI] WebSocket disconnected');
+            // eslint-disable-next-line
             reconnectTimerRef.current = setTimeout(connect, 2000);
         };
 
@@ -85,12 +86,13 @@ export function useConcentraSocket() {
     const resetSession = useCallback(async () => {
         try {
             const baseUrl = getApiBaseUrl();
-            await fetch(`${baseUrl}/api/session/${clientIdRef.current}/reset`, { method: 'POST' });
+            // eslint-disable-next-line
+            await fetch(`${baseUrl}/api/session/${clientId}/reset`, { method: 'POST' });
             setData(null);
         } catch (e) {
             console.error('[ConcentraAI] Reset error:', e);
         }
-    }, [getApiBaseUrl]);
+    }, [getApiBaseUrl, clientId]);
 
     useEffect(() => {
         return () => {

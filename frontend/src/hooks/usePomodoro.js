@@ -34,27 +34,6 @@ export function usePomodoro(preset = 'classic') {
     }, [phase, isRunning]);
 
     // Tick every second
-    useEffect(() => {
-        if (!isRunning) {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            return;
-        }
-
-        intervalRef.current = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 1) {
-                    // Phase complete
-                    clearInterval(intervalRef.current);
-                    handlePhaseComplete();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(intervalRef.current);
-    }, [isRunning, phase, cycle]);
-
     const handlePhaseComplete = useCallback(() => {
         // Log the completed phase
         if (phase === 'work') {
@@ -113,8 +92,29 @@ export function usePomodoro(preset = 'classic') {
                 osc.stop(now + (i + 1) * 0.2 + 0.1);
             });
             setTimeout(() => ctx.close(), 1000);
-        } catch (e) { /* ignore */ }
+        } catch { /* ignore */ }
     }, [phase, cycle, config, totalTime]);
+    useEffect(() => {
+        if (!isRunning) {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            return;
+        }
+
+        intervalRef.current = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    // Phase complete
+                    clearInterval(intervalRef.current);
+                    handlePhaseComplete();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(intervalRef.current);
+    }, [isRunning, phase, cycle]);
+
 
     const start = useCallback(() => {
         if (phase === 'idle') {

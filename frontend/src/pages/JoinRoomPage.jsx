@@ -8,6 +8,7 @@ import WebcamView from '../components/WebcamView';
 import ConcentrationGauge from '../components/ConcentrationGauge';
 import { useConcentraSocket } from '../hooks/useConcentraSocket';
 import { useWebcam } from '../hooks/useWebcam';
+import { SkeletonGauge } from '../components/SkeletonLoader';
 
 function getApiBase() {
     if (import.meta.env.VITE_BACKEND_URL) return import.meta.env.VITE_BACKEND_URL;
@@ -192,10 +193,14 @@ export default function JoinRoomPage() {
                         <div className="join-grid">
                             <WebcamView ref={videoRef} isActive={isActive} isDetecting={isDetecting} />
                             <div className="sidebar">
-                                <ConcentrationGauge
-                                    concentration={data?.concentration ?? 0}
-                                    state={data?.state ?? 'Absent'}
-                                />
+                                {data ? (
+                                    <ConcentrationGauge
+                                        concentration={data.concentration}
+                                        state={data.state}
+                                    />
+                                ) : (
+                                    <SkeletonGauge />
+                                )}
                                 <div className="controls-card glass-card" id="controls">
                                     <div className="controls-row">
                                         {!isDetecting ? (

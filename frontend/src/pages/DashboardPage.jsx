@@ -11,6 +11,7 @@ import TimelineChart from '../components/TimelineChart';
 import SessionStats from '../components/SessionStats';
 import SettingsPanel from '../components/SettingsPanel';
 import PomodoroTimer from '../components/PomodoroTimer';
+import { SkeletonGauge, SkeletonMetrics, SkeletonTimeline, SkeletonStats } from '../components/SkeletonLoader';
 import { useConcentraSocket } from '../hooks/useConcentraSocket';
 import { useWebcam } from '../hooks/useWebcam';
 import { useAlerts, DEFAULT_SETTINGS } from '../hooks/useAlerts';
@@ -177,11 +178,20 @@ export default function DashboardPage() {
                 <div className="dashboard-grid">
                     <WebcamView ref={videoRef} isActive={isActive} isDetecting={isDetecting} />
                     <div className="sidebar">
-                        <ConcentrationGauge
-                            concentration={data?.concentration ?? 0}
-                            state={data?.state ?? 'Absent'}
-                        />
-                        <MetricsPanel data={data} />
+                        {data ? (
+                            <>
+                                <ConcentrationGauge
+                                    concentration={data.concentration}
+                                    state={data.state}
+                                />
+                                <MetricsPanel data={data} />
+                            </>
+                        ) : (
+                            <>
+                                <SkeletonGauge />
+                                <SkeletonMetrics />
+                            </>
+                        )}
                         <div className="controls-card glass-card" id="controls">
                             <div className="controls-row">
                                 {!isDetecting ? (
@@ -208,8 +218,17 @@ export default function DashboardPage() {
                         onPresetChange={setPomodoroPreset}
                     />
                 </div>
-                <TimelineChart history={history} />
-                <SessionStats data={data} history={history} />
+                {data || history.length > 0 ? (
+                    <>
+                        <TimelineChart history={history} />
+                        <SessionStats data={data} history={history} />
+                    </>
+                ) : (
+                    <>
+                        <SkeletonTimeline />
+                        <SkeletonStats />
+                    </>
+                )}
             </main>
 
             <SettingsPanel

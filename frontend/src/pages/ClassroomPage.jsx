@@ -31,6 +31,25 @@ export default function ClassroomPage() {
     const [error, setError] = useState('');
     const wsRef = useRef(null);
 
+    const connectWs = useCallback((code) => {
+        const ws = new WebSocket(`${getWsBase()}/ws/classroom/${code}`);
+        wsRef.current = ws;
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (!data.error) setRoomData(data);
+            } catch { /* ignore */ }
+        };
+
+        ws.onclose = () => {
+            // Attempt reconnect after 3s
+            setTimeout(() => {
+                // eslint-disable-next-line
+                if (step === 'lobby') connectWs(code);
+            }, 3000);
+        };
+    }, [step]);
     const createRoom = async () => {
         if (!teacherName.trim()) {
             setError('Please enter your name');
@@ -47,29 +66,11 @@ export default function ClassroomPage() {
             setRoomCode(data.code);
             setStep('lobby');
             connectWs(data.code);
-        } catch (e) {
+        } catch {
             setError('Failed to create room. Is the backend running?');
         }
     };
 
-    const connectWs = useCallback((code) => {
-        const ws = new WebSocket(`${getWsBase()}/ws/classroom/${code}`);
-        wsRef.current = ws;
-
-        ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (!data.error) setRoomData(data);
-            } catch (e) { /* ignore */ }
-        };
-
-        ws.onclose = () => {
-            // Attempt reconnect after 3s
-            setTimeout(() => {
-                if (step === 'lobby') connectWs(code);
-            }, 3000);
-        };
-    }, [step]);
 
     const closeRoom = () => {
         if (wsRef.current) wsRef.current.close();
