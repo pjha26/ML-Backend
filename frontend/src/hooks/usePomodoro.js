@@ -113,7 +113,7 @@ export function usePomodoro(preset = 'classic') {
         }, 1000);
 
         return () => clearInterval(intervalRef.current);
-    }, [isRunning, phase, cycle]);
+    }, [isRunning, phase, cycle, handlePhaseComplete]);
 
 
     const start = useCallback(() => {

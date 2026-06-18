@@ -1,7 +1,6 @@
 /**
  * SettingsPanel — slide-out panel for configuring alert thresholds.
  */
-import { useState } from 'react';
 
 export default function SettingsPanel({ settings, onSettingsChange, isOpen, onClose }) {
     const update = (key, value) => {

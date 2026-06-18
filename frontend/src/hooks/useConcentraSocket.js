@@ -18,12 +18,12 @@ export function useConcentraSocket() {
         if (backendUrl) {
             // Convert http(s) to ws(s)
             const wsUrl = backendUrl.replace(/^http/, 'ws');
-            return `${wsUrl}/ws/${clientIdRef.current}`;
+            return `${wsUrl}/ws/${clientId}`;
         }
         // In development, use the Vite proxy (same host)
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        return `${protocol}://${window.location.host}/ws/${clientIdRef.current}`;
-    }, []);
+        return `${protocol}://${window.location.host}/ws/${clientId}`;
+    }, [clientId]);
 
     const getApiBaseUrl = useCallback(() => {
         return import.meta.env.VITE_BACKEND_URL || '';
@@ -37,7 +37,7 @@ export function useConcentraSocket() {
 
         ws.onopen = () => {
             setIsConnected(true);
-            console.log('[ConcentraAI] WebSocket connected');
+            console.log(`[ConcentraAI] WebSocket connected for client ${clientId}`);
         };
 
         ws.onmessage = (event) => {
@@ -54,7 +54,7 @@ export function useConcentraSocket() {
         ws.onclose = () => {
             setIsConnected(false);
             console.log('[ConcentraAI] WebSocket disconnected');
-            // eslint-disable-next-line
+            // eslint-disable-next-line no-use-before-define
             reconnectTimerRef.current = setTimeout(connect, 2000);
         };
 
@@ -64,7 +64,7 @@ export function useConcentraSocket() {
         };
 
         wsRef.current = ws;
-    }, [getBackendUrl]);
+    }, [getBackendUrl, clientId]);
 
     const disconnect = useCallback(() => {
         clearTimeout(reconnectTimerRef.current);
@@ -77,16 +77,15 @@ export function useConcentraSocket() {
 
     const sendFrame = useCallback((base64Image, roomCode) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
-            const msg = { image: base64Image };
+            const msg = { image: base64Image, clientId: clientId };
             if (roomCode) msg.roomCode = roomCode;
             wsRef.current.send(JSON.stringify(msg));
         }
-    }, []);
+    }, [clientId]);
 
     const resetSession = useCallback(async () => {
         try {
             const baseUrl = getApiBaseUrl();
-            // eslint-disable-next-line
             await fetch(`${baseUrl}/api/session/${clientId}/reset`, { method: 'POST' });
             setData(null);
         } catch (e) {
@@ -108,6 +107,6 @@ export function useConcentraSocket() {
         disconnect,
         sendFrame,
         resetSession,
-        clientId: clientIdRef.current,
+        clientId: clientId,
     };
 }
