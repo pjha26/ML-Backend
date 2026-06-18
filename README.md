@@ -2,11 +2,51 @@
 
 A real-time AI-powered student concentration monitoring system. Uses **MediaPipe Face Mesh** and **OpenCV** on the backend, with a stunning **React** dashboard frontend. Detects and classifies student states as **Focused**, **Distracted**, **Sleepy**, or **Absent**.
 
-## 🖥️ Architecture
+## 🖥️ Architecture & Workflow
 
+### System Architecture
+
+```mermaid
+graph TD
+    Client[Browser Frontend\nReact + Vite]
+    Webcam[Webcam API]
+    WebSocketServer[FastAPI WebSocket\nServer]
+    MLEngine[MediaPipe ML Engine]
+    StateEngine[Concentration\nState Logic]
+    
+    Webcam -->|"Video Frames"| Client
+    Client -->|"Base64 JPEG via WS"| WebSocketServer
+    WebSocketServer -->|"Decode Image"| MLEngine
+    MLEngine -->|"Face Landmarks & Metrics"| StateEngine
+    StateEngine -->|"JSON Results\nScore, State, Metrics"| WebSocketServer
+    WebSocketServer -->|"Real-time JSON"| Client
 ```
-Browser (React + Webcam) ──WebSocket──▶ FastAPI Backend ──▶ MediaPipe ML Engine
-        ◀──── JSON data ─────────────────────────────────────┘
+
+### Real-Time Workflow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as React Frontend
+    participant B as FastAPI Backend
+    participant M as ML Engine
+
+    U->>F: Opens Dashboard & Starts Camera
+    F->>U: Requests Camera Permission
+    U-->>F: Grants Permission
+    F->>B: Establishes WebSocket Connection
+    loop Every Frame
+        F->>F: Captures Video Frame
+        F->>B: Sends Base64 Encoded Frame
+        B->>M: Forwards Frame for Inference
+        M->>M: Analyzes Face Mesh & Pose
+        M-->>B: Returns Concentration Metrics
+        B-->>F: Sends JSON Payload (Score, State)
+        F->>F: Updates UI Gauge & Timeline
+    end
+    U->>F: Stops Session
+    F->>B: Closes WebSocket
+    F->>F: Saves Session Summary
 ```
 
 - **Frontend**: React + Vite — captures webcam in browser, displays real-time dashboard

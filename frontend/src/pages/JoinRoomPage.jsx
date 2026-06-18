@@ -57,7 +57,7 @@ export default function JoinRoomPage() {
             setTeacherName(result.teacherName);
             setRoomCode(result.code);
             setStep('active');
-        } catch (e) {
+        } catch {
             setError('Failed to join. Is the backend running?');
         }
     };
@@ -95,7 +95,7 @@ export default function JoinRoomPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ clientId: clientId }),
             });
-        } catch (e) { /* ignore */ }
+        } catch { /* ignore */ }
         navigate('/classroom');
     };
 
@@ -105,7 +105,7 @@ export default function JoinRoomPage() {
             stopCamera();
             disconnect();
         };
-    }, []);
+    }, [disconnect, stopCamera, stopCapture]);
 
     return (
         <div className="join-page">

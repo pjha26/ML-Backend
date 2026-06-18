@@ -286,10 +286,13 @@ class ConcentrationDetector:
         if "," in base64_str:
             base64_str = base64_str.split(",", 1)[1]
 
-        img_bytes = base64.b64decode(base64_str)
-        nparr = np.frombuffer(img_bytes, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        return frame
+        try:
+            img_bytes = base64.b64decode(base64_str)
+            nparr = np.frombuffer(img_bytes, np.uint8)
+            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            return frame
+        except Exception:
+            return None
 
     def close(self):
         """Release MediaPipe resources."""

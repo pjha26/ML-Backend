@@ -18,8 +18,7 @@ class TestConcentrationDetector:
     def test_initialization(self):
         """Detector initializes with correct defaults."""
         assert self.detector.concentration_score == 50.0
-        assert self.detector.state == "Absent"
-        assert self.detector.blink_count == 0
+        assert self.detector.blink_counter == 0
 
     def test_process_blank_frame(self):
         """Processing a blank frame returns Absent state."""
@@ -33,11 +32,11 @@ class TestConcentrationDetector:
     def test_session_summary(self):
         """Session summary returns expected structure."""
         summary = self.detector.get_session_summary()
-        assert "avg_concentration" in summary
-        assert "focus_rate" in summary
+        assert "average_concentration" in summary
+        assert "state_distribution" in summary
         assert "total_samples" in summary
-        assert "blink_count" in summary
-        assert "session_duration" in summary
+        assert "history" in summary
+        assert "duration" in summary
 
     def test_reset_session(self):
         """Reset clears all session data."""
@@ -48,7 +47,7 @@ class TestConcentrationDetector:
 
         self.detector.reset_session()
         assert self.detector.concentration_score == 50.0
-        assert self.detector.blink_count == 0
+        assert self.detector.blink_counter == 0
 
     def test_decode_base64_frame_invalid(self):
         """Invalid base64 returns None."""

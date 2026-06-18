@@ -83,24 +83,26 @@ export default function DashboardPage() {
     );
 
     const prevDataRef = useRef(null);
-    if (data && data !== prevDataRef.current && data.session_duration) {
-        prevDataRef.current = data;
-        checkAndAlert(data);
-        pomodoro.trackConcentration(data.concentration);
-        const now = data.session_duration;
-        if (now - lastHistoryTimeRef.current >= 1.0) {
-            lastHistoryTimeRef.current = now;
-            const newPoint = {
-                time: now,
-                concentration: data.concentration,
-                state: data.state,
-            };
-            historyRef.current = [...historyRef.current.slice(-119), newPoint];
-            if (historyRef.current.length !== history.length) {
-                setHistory([...historyRef.current]);
+    useEffect(() => {
+        if (data && data !== prevDataRef.current && data.session_duration) {
+            prevDataRef.current = data;
+            checkAndAlert(data);
+            pomodoro.trackConcentration(data.concentration);
+            const now = data.session_duration;
+            if (now - lastHistoryTimeRef.current >= 1.0) {
+                lastHistoryTimeRef.current = now;
+                const newPoint = {
+                    time: now,
+                    concentration: data.concentration,
+                    state: data.state,
+                };
+                historyRef.current = [...historyRef.current.slice(-119), newPoint];
+                if (historyRef.current.length !== history.length) {
+                    setHistory([...historyRef.current]);
+                }
             }
         }
-    }
+    }, [data, checkAndAlert, pomodoro, history.length]);
 
     const handleStart = async () => {
         const cameraOk = await startCamera();
