@@ -1,60 +1,54 @@
 /**
- * LandingPage — premium marketing page for ConcentraAI
+ * LandingPage — premium marketing page for ConcentraAI (2026 AI Aesthetic)
  */
 import { Link } from 'react-router-dom';
+import '../landing.css';
 
 const FEATURES = [
     {
-        icon: '🧠',
         title: 'AI Face Analysis',
         desc: 'MediaPipe Face Mesh with 478 landmarks tracks eyes, gaze, and head pose in real-time.',
     },
     {
-        icon: '📊',
         title: 'Live Concentration Score',
         desc: 'Dynamic 0-100% score updated every frame with intelligent state classification.',
     },
     {
-        icon: '🔔',
         title: 'Smart Alerts',
         desc: 'Browser notifications and audio chimes when you lose focus — fully customizable.',
     },
     {
-        icon: '📈',
         title: 'Session Analytics',
         desc: 'Timeline charts, state distribution, and historical trends for every study session.',
     },
     {
-        icon: '🤖',
         title: 'AI Study Coach',
         desc: 'Gemini-powered personalized study recommendations based on your focus patterns.',
     },
     {
-        icon: '⚡',
         title: 'Real-time WebSocket',
         desc: 'Low-latency processing at 5 FPS via WebSocket — no page reloads, instant feedback.',
     },
     {
-        icon: '🧑‍🏫',
         title: 'Classroom Mode',
         desc: 'Teachers create rooms, students join — live grid shows every student\'s focus in real-time.',
     },
 ];
 
 const TECH_STACK = [
-    { name: 'Python', color: '#3776ab' },
-    { name: 'FastAPI', color: '#009688' },
-    { name: 'MediaPipe', color: '#0097a7' },
-    { name: 'OpenCV', color: '#5c3ee8' },
-    { name: 'React', color: '#61dafb' },
-    { name: 'WebSocket', color: '#f97316' },
-    { name: 'Vite', color: '#646cff' },
-    { name: 'Gemini AI', color: '#8b5cf6' },
+    { name: 'Python' },
+    { name: 'FastAPI' },
+    { name: 'MediaPipe' },
+    { name: 'OpenCV' },
+    { name: 'React' },
+    { name: 'WebSocket' },
+    { name: 'Vite' },
+    { name: 'Gemini AI' },
 ];
 
 export default function LandingPage() {
     return (
-        <div className="landing">
+        <div className="landing-wrapper">
             {/* Nav */}
             <nav className="landing-nav">
                 <div className="landing-nav-inner">
@@ -66,8 +60,8 @@ export default function LandingPage() {
                         <a href="#features">Features</a>
                         <a href="#tech">Tech Stack</a>
                         <a href="#how">How It Works</a>
-                        <Link to="/classroom" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Classroom</Link>
-                        <Link to="/app" className="btn btn-primary" style={{ flex: 'none', padding: '10px 24px' }}>
+                        <Link to="/classroom">Classroom</Link>
+                        <Link to="/app" className="landing-btn landing-btn-primary">
                             Launch App →
                         </Link>
                     </div>
@@ -78,10 +72,13 @@ export default function LandingPage() {
             <section className="hero">
                 <div className="hero-glow" />
                 <div className="hero-content">
-                    <div className="hero-badge">🧠 AI-Powered Concentration Detection</div>
+                    <div className="hero-badge">
+                        <div className="status-dot" />
+                        LIVE AI-POWERED CONCENTRATION DETECTION
+                    </div>
                     <h1 className="hero-title">
-                        Stay <span className="hero-highlight">Focused</span>,<br />
-                        Study <span className="hero-highlight-2">Smarter</span>
+                        <span className="line-1">STAY <span className="text-gradient">FOCUSED.</span></span>
+                        <span className="line-2">STUDY SMARTER.</span>
                     </h1>
                     <p className="hero-subtitle">
                         ConcentraAI uses computer vision and AI to track your concentration
@@ -89,29 +86,31 @@ export default function LandingPage() {
                         study recommendations.
                     </p>
                     <div className="hero-actions">
-                        <Link to="/app" className="btn btn-primary btn-lg">
-                            ▶ Start Free Session
+                        <Link to="/app" className="landing-btn landing-btn-primary landing-btn-lg">
+                            Start Free Session
                         </Link>
-                        <Link to="/classroom" className="btn btn-outline btn-lg">
-                            🧑‍🏫 Classroom Mode
+                        <Link to="/classroom" className="landing-btn landing-btn-ghost landing-btn-lg">
+                            Classroom Mode
                         </Link>
                     </div>
-                    <div className="hero-stats">
-                        <div className="hero-stat">
-                            <span className="hero-stat-value">478</span>
-                            <span className="hero-stat-label">Face Landmarks</span>
+                    
+                    {/* Stats Row Below Hero */}
+                    <div className="stats-row">
+                        <div className="stat-card">
+                            <span className="stat-value">478</span>
+                            <span className="stat-label">Face Landmarks</span>
                         </div>
-                        <div className="hero-stat">
-                            <span className="hero-stat-value">5 FPS</span>
-                            <span className="hero-stat-label">Real-time Processing</span>
+                        <div className="stat-card">
+                            <span className="stat-value">5 FPS</span>
+                            <span className="stat-label">Real-time Processing</span>
                         </div>
-                        <div className="hero-stat">
-                            <span className="hero-stat-value">4</span>
-                            <span className="hero-stat-label">Focus States</span>
+                        <div className="stat-card">
+                            <span className="stat-value">4</span>
+                            <span className="stat-label">Focus States</span>
                         </div>
-                        <div className="hero-stat">
-                            <span className="hero-stat-value">&lt;200ms</span>
-                            <span className="hero-stat-label">Latency</span>
+                        <div className="stat-card">
+                            <span className="stat-value">&lt;200ms</span>
+                            <span className="stat-label">Latency</span>
                         </div>
                     </div>
                 </div>
@@ -123,8 +122,7 @@ export default function LandingPage() {
                 <p className="section-subtitle">Everything you need to optimize your study sessions</p>
                 <div className="features-grid">
                     {FEATURES.map((f, i) => (
-                        <div key={i} className="feature-card glass-card">
-                            <div className="feature-icon">{f.icon}</div>
+                        <div key={i} className="feature-glass-card">
                             <h3>{f.title}</h3>
                             <p>{f.desc}</p>
                         </div>
@@ -137,19 +135,19 @@ export default function LandingPage() {
                 <h2 className="section-title">How It Works</h2>
                 <p className="section-subtitle">Three simple steps to better focus</p>
                 <div className="steps-row">
-                    <div className="step-card glass-card">
+                    <div className="step-glass-card">
                         <div className="step-number">01</div>
                         <h3>Open & Allow Camera</h3>
                         <p>Launch the app and grant camera permission. Your webcam feed stays in the browser — never uploaded.</p>
                     </div>
                     <div className="step-connector">→</div>
-                    <div className="step-card glass-card">
+                    <div className="step-glass-card">
                         <div className="step-number">02</div>
                         <h3>AI Analyzes Your Focus</h3>
                         <p>MediaPipe detects your face, eyes, gaze direction, and head pose. The ML engine classifies your state every frame.</p>
                     </div>
                     <div className="step-connector">→</div>
-                    <div className="step-card glass-card">
+                    <div className="step-glass-card">
                         <div className="step-number">03</div>
                         <h3>Get Insights & Alerts</h3>
                         <p>See your concentration score live, get alerts when distracted, and review AI-generated study recommendations.</p>
@@ -163,7 +161,7 @@ export default function LandingPage() {
                 <p className="section-subtitle">Modern, production-grade technology stack</p>
                 <div className="tech-grid">
                     {TECH_STACK.map((t, i) => (
-                        <div key={i} className="tech-pill" style={{ borderColor: t.color + '30', color: t.color }}>
+                        <div key={i} className="tech-glass-pill">
                             {t.name}
                         </div>
                     ))}
@@ -171,12 +169,12 @@ export default function LandingPage() {
             </section>
 
             {/* CTA */}
-            <section className="landing-cta">
-                <div className="landing-cta-inner glass-card">
+            <section className="landing-section">
+                <div className="landing-cta-inner">
                     <h2>Ready to study smarter?</h2>
                     <p>Start your first concentration tracking session — it's free, no signup required.</p>
-                    <Link to="/app" className="btn btn-primary btn-lg">
-                        Launch ConcentraAI →
+                    <Link to="/app" className="landing-btn landing-btn-primary landing-btn-lg">
+                        Launch ConcentraAI
                     </Link>
                 </div>
             </section>
@@ -184,7 +182,7 @@ export default function LandingPage() {
             {/* Footer */}
             <footer className="landing-footer">
                 <p>Built with ❤️ using React, FastAPI, MediaPipe & Gemini AI</p>
-                <p style={{ marginTop: '4px', fontSize: '12px' }}>© 2026 ConcentraAI — Open Source for Education</p>
+                <p style={{ marginTop: '4px', fontSize: '12px', opacity: 0.5 }}>© 2026 ConcentraAI — Open Source for Education</p>
             </footer>
         </div>
     );
