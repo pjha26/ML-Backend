@@ -1,40 +1,33 @@
-/**
- * WebcamView — displays the live webcam feed with overlay labels.
- * The <video> element is ALWAYS rendered (hidden when inactive)
- * so the ref is available when startCamera() assigns srcObject.
- */
 import { forwardRef } from 'react';
 
-const WebcamView = forwardRef(({ isActive, isDetecting }, ref) => {
+const WebcamView = forwardRef(({ isActive }, ref) => {
     return (
-        <div className="webcam-section" id="webcam-view">
-            {/* Video is always in the DOM so ref is never null */}
-            <video
-                ref={ref}
-                className="webcam-video"
-                autoPlay
-                playsInline
-                muted
-                style={{ display: isActive ? 'block' : 'none' }}
-            />
-
-            {isActive && (
+        <div className="webcam-section fade-in">
+            {isActive ? (
                 <>
+                    <video
+                        ref={ref}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="webcam-video"
+                    />
                     <div className="webcam-overlay" />
-                    <div className="webcam-label">
-                        <span className={`live-dot ${isDetecting ? 'active' : ''}`} />
-                        {isDetecting ? 'DETECTING' : 'CAMERA READY'}
-                    </div>
                 </>
-            )}
-
-            {!isActive && (
+            ) : (
                 <div className="webcam-placeholder">
-                    <div className="webcam-placeholder-icon">📷</div>
-                    <p>Click <strong>Start Detection</strong> to begin</p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                        Browser will request camera permission
-                    </p>
+                    {/* SVG Face Mesh Wireframe Icon */}
+                    <svg className="face-mesh-icon" viewBox="0 0 200 200" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                        <ellipse cx="100" cy="100" rx="60" ry="80" strokeDasharray="4 4"/>
+                        <path d="M60 80 Q100 120 140 80" />
+                        <path d="M75 70 A 5 5 0 0 1 85 70" />
+                        <path d="M115 70 A 5 5 0 0 1 125 70" />
+                        <path d="M100 100 L100 130" />
+                        <path d="M80 150 Q100 160 120 150" />
+                        <path d="M40 100 L160 100" strokeDasharray="2 6"/>
+                        <path d="M100 20 L100 180" strokeDasharray="2 6"/>
+                    </svg>
+                    <p>Start detection to begin monitoring</p>
                 </div>
             )}
         </div>

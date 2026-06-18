@@ -1,5 +1,5 @@
 /**
- * MetricsPanel — displays real-time metrics: EAR, Yaw, Gaze, Blinks
+ * MetricsPanel
  */
 export default function MetricsPanel({ data }) {
     const ear = data?.ear ?? '—';
@@ -7,32 +7,32 @@ export default function MetricsPanel({ data }) {
     const gazeH = data?.gaze_h ?? '—';
     const blinks = data?.blink_count ?? 0;
 
+    // A simple heuristic for "healthy" metrics just to trigger the subtle glow
+    const isHealthy = data && data.state !== 'Absent' && data.state !== 'Sleepy';
+
     return (
-        <div className="metrics-card glass-card fade-in" id="metrics-panel">
-            <h3>Real-time Metrics</h3>
-            <div className="metrics-grid">
-                <div className="metric-item">
-                    <div className="metric-label">Eye Aspect Ratio</div>
-                    <div className="metric-value cyan">
-                        {typeof ear === 'number' ? ear.toFixed(3) : ear}
-                    </div>
+        <div className="metrics-grid fade-in">
+            <div className={`metric-item ${isHealthy ? 'healthy' : ''}`}>
+                <div className="metric-label">EAR</div>
+                <div className="metric-value">
+                    {typeof ear === 'number' ? ear.toFixed(3) : ear}
                 </div>
-                <div className="metric-item">
-                    <div className="metric-label">Head Yaw</div>
-                    <div className="metric-value purple">
-                        {typeof yaw === 'number' ? `${yaw.toFixed(1)}°` : yaw}
-                    </div>
+            </div>
+            <div className={`metric-item ${isHealthy ? 'healthy' : ''}`}>
+                <div className="metric-label">Yaw</div>
+                <div className="metric-value">
+                    {typeof yaw === 'number' ? yaw.toFixed(1) : yaw}
                 </div>
-                <div className="metric-item">
-                    <div className="metric-label">Gaze Position</div>
-                    <div className="metric-value green">
-                        {typeof gazeH === 'number' ? gazeH.toFixed(3) : gazeH}
-                    </div>
+            </div>
+            <div className={`metric-item ${isHealthy ? 'healthy' : ''}`}>
+                <div className="metric-label">Gaze H</div>
+                <div className="metric-value">
+                    {typeof gazeH === 'number' ? gazeH.toFixed(3) : gazeH}
                 </div>
-                <div className="metric-item">
-                    <div className="metric-label">Blink Count</div>
-                    <div className="metric-value orange">{blinks}</div>
-                </div>
+            </div>
+            <div className={`metric-item ${isHealthy ? 'healthy' : ''}`}>
+                <div className="metric-label">Blinks</div>
+                <div className="metric-value">{blinks}</div>
             </div>
         </div>
     );

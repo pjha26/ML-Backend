@@ -1,7 +1,3 @@
-/**
- * DashboardPage — wraps the main detection dashboard.
- * The original App.jsx content extracted into its own route.
- */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import WebcamView from '../components/WebcamView';
@@ -17,12 +13,10 @@ import { useWebcam } from '../hooks/useWebcam';
 import { useAlerts, DEFAULT_SETTINGS } from '../hooks/useAlerts';
 import { usePomodoro } from '../hooks/usePomodoro';
 
-/** Save a completed session to localStorage */
 function saveSession(history, data) {
-    if (!history || history.length < 5) return; // Too short to save
+    if (!history || history.length < 5) return;
     const sessions = JSON.parse(localStorage.getItem('concentra-sessions') || '[]');
 
-    // Calculate state distribution
     const stateCounts = {};
     history.forEach((pt) => {
         stateCounts[pt.state] = (stateCounts[pt.state] || 0) + 1;
@@ -119,7 +113,6 @@ export default function DashboardPage() {
     };
 
     const handleStop = () => {
-        // Save session before stopping
         if (historyRef.current.length >= 5) {
             saveSession(historyRef.current, prevDataRef.current);
         }
@@ -145,25 +138,28 @@ export default function DashboardPage() {
     return (
         <>
             <nav className="navbar">
-                <div className="navbar-brand">
-                    <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div className="navbar-logo">C</div>
-                        <span className="navbar-title">ConcentraAI</span>
-                    </Link>
+                <Link to="/" className="navbar-brand">
+                    <div style={{ width: 8, height: 8, background: 'var(--accent)', borderRadius: 2 }} />
+                    CONCENTRA_AI
+                </Link>
+                <div className="session-timer">
+                    {(() => {
+                        const s = data?.session_duration ?? 0;
+                        const h = Math.floor(s / 3600);
+                        const m = Math.floor((s % 3600) / 60);
+                        const sec = Math.floor(s % 60);
+                        return (
+                            <>
+                                {String(h).padStart(2, '0')}
+                                <span className={isDetecting ? "colon" : ""}>:</span>
+                                {String(m).padStart(2, '0')}
+                                <span className={isDetecting ? "colon" : ""}>:</span>
+                                {String(sec).padStart(2, '0')}
+                            </>
+                        );
+                    })()}
                 </div>
                 <div className="navbar-status">
-                    <span className="session-timer">
-                        {(() => {
-                            const s = data?.session_duration ?? 0;
-                            const h = Math.floor(s / 3600);
-                            const m = Math.floor((s % 3600) / 60);
-                            const sec = Math.floor(s % 60);
-                            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-                        })()}
-                    </span>
-                    <Link to="/history" className="btn-settings" title="Session History" style={{ textDecoration: 'none' }}>
-                        📋
-                    </Link>
                     <div
                         className={`connection-dot ${isConnected ? 'connected' : ''}`}
                         title={isConnected ? 'Connected' : 'Disconnected'}
@@ -176,7 +172,12 @@ export default function DashboardPage() {
 
             <main className="app-container">
                 <div className="dashboard-grid">
-                    <WebcamView ref={videoRef} isActive={isActive} isDetecting={isDetecting} />
+                    {/* Left 65% - Webcam View */}
+                    <div className="webcam-wrapper">
+                        <WebcamView ref={videoRef} isActive={isActive} isDetecting={isDetecting} />
+                    </div>
+
+                    {/* Right 35% - Sidebar */}
                     <div className="sidebar">
                         {data ? (
                             <>
@@ -192,32 +193,33 @@ export default function DashboardPage() {
                                 <SkeletonMetrics />
                             </>
                         )}
-                        <div className="controls-card glass-card" id="controls">
-                            <div className="controls-row">
-                                {!isDetecting ? (
-                                    <button className="btn btn-primary" onClick={handleStart}>▶ Start Detection</button>
-                                ) : (
-                                    <button className="btn btn-danger" onClick={handleStop}>■ Stop</button>
-                                )}
-                                <button className="btn btn-outline" onClick={handleReset}>↻ Reset</button>
-                            </div>
+                        
+                        <PomodoroTimer
+                            phase={pomodoro.phase}
+                            timeLeft={pomodoro.timeLeft}
+                            totalTime={pomodoro.totalTime}
+                            cycle={pomodoro.cycle}
+                            isRunning={pomodoro.isRunning}
+                            pomodoroLog={pomodoro.pomodoroLog}
+                            onStart={pomodoro.start}
+                            onPause={pomodoro.pause}
+                            onReset={pomodoro.reset}
+                            onSkip={pomodoro.skip}
+                            preset={pomodoroPreset}
+                            onPresetChange={setPomodoroPreset}
+                        />
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {!isDetecting ? (
+                                <button className="btn-system btn-primary" onClick={handleStart}>START SESSION</button>
+                            ) : (
+                                <button className="btn-system btn-danger" onClick={handleStop}>STOP SESSION</button>
+                            )}
+                            <button className="btn-system btn-ghost" onClick={handleReset}>RESET DATA</button>
                         </div>
                     </div>
-                    <PomodoroTimer
-                        phase={pomodoro.phase}
-                        timeLeft={pomodoro.timeLeft}
-                        totalTime={pomodoro.totalTime}
-                        cycle={pomodoro.cycle}
-                        isRunning={pomodoro.isRunning}
-                        pomodoroLog={pomodoro.pomodoroLog}
-                        onStart={pomodoro.start}
-                        onPause={pomodoro.pause}
-                        onReset={pomodoro.reset}
-                        onSkip={pomodoro.skip}
-                        preset={pomodoroPreset}
-                        onPresetChange={setPomodoroPreset}
-                    />
                 </div>
+
                 {data || history.length > 0 ? (
                     <>
                         <TimelineChart history={history} />
