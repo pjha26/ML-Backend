@@ -193,18 +193,16 @@ async def classroom_teacher_ws(websocket: WebSocket, code: str):
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
     """
     WebSocket endpoint for real-time frame processing.
-
-    Client sends:  { "image": "<base64-encoded-jpeg>" }
-    Server sends:  { "state": "Focused", "concentration": 85, ... }
     """
     await websocket.accept()
-
-    # Create a detector for this connection
-    detector = ConcentrationDetector()
-    detectors[client_id] = detector
-    print(f"[ConcentraAI] Client connected: {client_id}")
-
+    
+    detector = None
     try:
+        # Create a detector for this connection (could fail if MediaPipe crashes)
+        detector = ConcentrationDetector()
+        detectors[client_id] = detector
+        print(f"[ConcentraAI] Client connected: {client_id}")
+
         while True:
             # Receive frame from client
             data = await websocket.receive_text()
@@ -241,10 +239,13 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
     except WebSocketDisconnect:
         print(f"[ConcentraAI] Client disconnected: {client_id}")
     except Exception as e:
-        print(f"[ConcentraAI] Error with client {client_id}: {e}")
+        print(f"[ERROR] WebSocket crashed for {client_id}: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
-        # Cleanup
-        detector.close()
+        print(f"[ConcentraAI] WebSocket closed for {client_id}")
+        if detector:
+            detector.close()
         detectors.pop(client_id, None)
 
 

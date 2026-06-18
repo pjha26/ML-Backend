@@ -147,12 +147,18 @@ class ConcentrationDetector:
     """
 
     def __init__(self):
-        self.face_mesh = mp.solutions.face_mesh.FaceMesh(
-            max_num_faces=1,
-            refine_landmarks=True,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
-        )
+        try:
+            self.face_mesh = mp.solutions.face_mesh.FaceMesh(
+                max_num_faces=1,
+                refine_landmarks=True,
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5
+            )
+        except Exception as e:
+            print(f"[ML_ENGINE] CRITICAL ERROR: MediaPipe FaceMesh failed to initialize: {e}")
+            import traceback
+            traceback.print_exc()
+            raise e
         self.concentration_score = 50.0
         self.eyes_closed_start = None
         self.eyes_closed_time = 0.0

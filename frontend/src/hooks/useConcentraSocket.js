@@ -11,6 +11,8 @@ export function useConcentraSocket() {
     const wsRef = useRef(null);
     const [clientId] = useState(() => `client_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
     const reconnectTimerRef = useRef(null);
+    const retryCountRef = useRef(0);
+    const MAX_RETRIES = 3;
 
     const getBackendUrl = useCallback(() => {
         // In production, use the env variable pointing to Render backend
@@ -32,11 +34,17 @@ export function useConcentraSocket() {
     const connect = useCallback(() => {
         if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
+        if (retryCountRef.current >= MAX_RETRIES) {
+            console.error('[ConcentraAI] Max retries reached. Backend may be down.');
+            return;
+        }
+
         const wsUrl = getBackendUrl();
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
             setIsConnected(true);
+            retryCountRef.current = 0; // Reset retries on success
             console.log(`[ConcentraAI] WebSocket connected for client ${clientId}`);
         };
 
@@ -54,6 +62,7 @@ export function useConcentraSocket() {
         ws.onclose = () => {
             setIsConnected(false);
             console.log('[ConcentraAI] WebSocket disconnected');
+            retryCountRef.current++;
             // eslint-disable-next-line react-hooks/immutability
             reconnectTimerRef.current = setTimeout(connect, 2000);
         };
