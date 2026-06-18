@@ -54,7 +54,7 @@ export function useConcentraSocket() {
         ws.onclose = () => {
             setIsConnected(false);
             console.log('[ConcentraAI] WebSocket disconnected');
-            // eslint-disable-next-line no-use-before-define
+            // eslint-disable-next-line react-hooks/immutability
             reconnectTimerRef.current = setTimeout(connect, 2000);
         };
 
