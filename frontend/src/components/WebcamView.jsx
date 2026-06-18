@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 
-const WebcamView = forwardRef(({ isActive }, ref) => {
+const WebcamView = forwardRef(({ isActive, isDetecting }, ref) => {
     return (
         <div className="webcam-section fade-in">
             {isActive ? (
@@ -12,7 +12,49 @@ const WebcamView = forwardRef(({ isActive }, ref) => {
                         muted
                         className="webcam-video"
                     />
-                    <div className="webcam-overlay" />
+                    <div className="webcam-overlay" style={{
+                        position: 'absolute', inset: 0,
+                        boxShadow: 'inset 0 0 60px rgba(0,0,0,0.8)',
+                        pointerEvents: 'none'
+                    }}>
+                        {/* Viewfinder Corners */}
+                        <div style={{ position: 'absolute', top: 20, left: 20, width: 20, height: 20, borderTop: '2px solid rgba(255,255,255,0.3)', borderLeft: '2px solid rgba(255,255,255,0.3)' }} />
+                        <div style={{ position: 'absolute', top: 20, right: 20, width: 20, height: 20, borderTop: '2px solid rgba(255,255,255,0.3)', borderRight: '2px solid rgba(255,255,255,0.3)' }} />
+                        <div style={{ position: 'absolute', bottom: 20, left: 20, width: 20, height: 20, borderBottom: '2px solid rgba(255,255,255,0.3)', borderLeft: '2px solid rgba(255,255,255,0.3)' }} />
+                        <div style={{ position: 'absolute', bottom: 20, right: 20, width: 20, height: 20, borderBottom: '2px solid rgba(255,255,255,0.3)', borderRight: '2px solid rgba(255,255,255,0.3)' }} />
+                        
+                        {/* Center Crosshair */}
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'rgba(255,255,255,0.1)', fontFamily: 'var(--font-mono)' }}>
+                            +
+                        </div>
+
+                        {/* Status Label */}
+                        <div style={{
+                            position: 'absolute',
+                            top: 16,
+                            left: 16,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'rgba(0,0,0,0.4)',
+                            backdropFilter: 'blur(4px)',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '11px',
+                            color: isDetecting ? 'var(--success)' : 'var(--warning)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            letterSpacing: '0.05em'
+                        }}>
+                            <div style={{
+                                width: 6, height: 6, borderRadius: '50%',
+                                background: 'currentColor',
+                                boxShadow: `0 0 8px currentColor`,
+                                animation: isDetecting ? 'pulse-colon 1s infinite' : 'none'
+                            }} />
+                            {isDetecting ? 'SYS.TRACKING' : 'CAMERA READY'}
+                        </div>
+                    </div>
                 </>
             ) : (
                 <div className="webcam-placeholder">
